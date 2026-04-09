@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill-Agent 实验评估报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f6f5f4;
+  --surface:  #ffffff;
+  --surface2: #f6f5f4;
+  --border:   rgba(0,0,0,0.1);
+  --border2:  rgba(0,0,0,0.18);
+  --text:     rgba(0,0,0,0.95);
+  --text2:    #615d59;
+  --text3:    #a39e98;
+  --primary:  #0075de;
+  --primary-d:#005bab;
+  --doc:      #2563eb;
+  --flow:     #7c3aed;
+  --ctrl:     #8a8680;
+  --success:  #2a9d99;
+  --warn:     #dd5b00;
+  --danger:   #dc2626;
+  --radius:   8px;
+  --radius-lg:12px;
+  --card-shadow: rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.85px, rgba(0,0,0,0.02) 0px 0.8px 2.93px, rgba(0,0,0,0.01) 0px 0.175px 1.04px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-feature-settings: "cv01", "ss03";
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #f6f5f4;
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-brand {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand .logo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.1px;
+}
+.sidebar-brand .sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+.nav-group { margin-bottom: 20px; }
+.nav-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 0 10px;
+  margin-bottom: 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #615d59;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+}
+.nav-item:hover { background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.95); }
+.nav-item.active {
+  background: rgba(0,117,222,0.08);
+  color: var(--primary);
+  font-weight: 600;
+}
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-legend {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+.legend-title { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); margin-bottom: 7px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Main ── */
+.main { flex: 1; min-width: 0; overflow-x: hidden; }
+
+/* ── Top Header ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; color: var(--text); }
+.topbar-meta { display: flex; gap: 10px; }
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  padding: 4px 10px;
+  background: #f6f5f4;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+.meta-chip strong { color: var(--text); font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 32px 36px 72px; }
+.section { margin-bottom: 44px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.section-num {
+  width: 22px; height: 22px;
+  background: var(--primary);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+.section-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+.section-sub { font-size: 12px; color: var(--text3); margin-top: 3px; font-weight: 400; }
+.section-divider { height: 1px; background: var(--border); margin: 36px 0; }
+
+/* ── KPI Row ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s, transform 0.15s;
+  cursor: default;
+}
+.kpi-card:hover { box-shadow: rgba(0,0,0,0.06) 0px 6px 24px, rgba(0,0,0,0.04) 0px 2px 8px; transform: translateY(-1px); }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+.kpi-rows { display: flex; flex-direction: column; gap: 9px; margin-bottom: 12px; }
+.kpi-entry { display: flex; flex-direction: column; gap: 4px; }
+.kpi-line { display: flex; align-items: baseline; justify-content: space-between; }
+.kpi-ver { font-size: 11px; color: var(--text3); }
+.kpi-val { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+.kpi-track { height: 3px; border-radius: 2px; background: rgba(0,0,0,0.06); overflow: hidden; margin-top: 1px; }
+.kpi-fill { height: 3px; border-radius: 2px; }
+.kpi-badge {
+  font-size: 11px; font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* ── Cards Grid ── */
+.cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card-full { grid-column: 1 / -1; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s;
+}
+.card:hover { box-shadow: rgba(0,0,0,0.06) 0px 6px 24px, rgba(0,0,0,0.04) 0px 2px 8px; }
+.card-head { margin-bottom: 18px; }
+.card-title { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.1px; }
+.card-sub { font-size: 12px; color: var(--text3); margin-top: 4px; font-weight: 400; }
+.chart-wrap { position: relative; }
+
+/* ── Analysis Blocks ── */
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+.analysis-stack { display: flex; flex-direction: column; gap: 10px; }
+
+.ablock {
+  border-radius: 6px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 3px solid;
+}
+.ablock-blue   { background: rgba(0,117,222,0.05);   border-color: var(--primary); }
+.ablock-green  { background: rgba(42,157,153,0.05);  border-color: var(--success); }
+.ablock-purple { background: rgba(124,58,237,0.05);  border-color: var(--flow); }
+.ablock-amber  { background: rgba(221,91,0,0.05);    border-color: var(--warn); }
+.ablock-red    { background: rgba(220,38,38,0.05);   border-color: var(--danger); }
+
+.ablock-tag { font-size: 11px; font-weight: 600; color: #615d59; margin-bottom: 2px; letter-spacing: 0.2px; }
+.ablock-item { font-size: 13px; line-height: 1.75; color: #615d59; }
+.ablock-item strong { color: rgba(0,0,0,0.9); font-weight: 600; }
+.ablock-item a { color: var(--warn); }
+
+.ver-item { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 4px; }
+.ver-item:last-child { border-bottom: none; padding-bottom: 0; }
+.ver-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+
+/* ── Pros/Cons Cards ── */
+.pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pc-single { grid-column: 1 / -1; }
+.pc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border-top-width: 3px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s;
+}
+.pc-card:hover { box-shadow: rgba(0,0,0,0.06) 0px 6px 24px, rgba(0,0,0,0.04) 0px 2px 8px; }
+.pc-card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); letter-spacing: -0.1px; }
+.pc-section { margin-bottom: 12px; }
+.pc-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+}
+.pc-label.pro { color: var(--success); }
+.pc-label.con { color: var(--danger); }
+.pc-sub-label {
+  font-size: 11px; font-weight: 600; color: #a39e98;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  display: block; margin-bottom: 4px;
+  padding: 2px 8px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 9999px;
+  width: fit-content;
+}
+.pc-item { font-size: 14px; line-height: 1.8; color: #615d59; }
+.pc-item strong { color: var(--text); }
+
+/* ── 裁剪线分隔（优势/劣势之间） ── */
+.pc-divider {
+  position: relative;
+  margin: 14px 0;
+  height: 1px;
+  border: none;
+  border-top: 1.5px dashed rgba(0,0,0,0.13);
+}
+.pc-divider::before, .pc-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.13);
+}
+.pc-divider::before { left: -3px; }
+.pc-divider::after  { right: -3px; }
+
+/* ── Insight ── */
+.insight {
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  border-left: 3px solid;
+  font-weight: 400;
+}
+.insight-info   { background: rgba(0,117,222,0.05);  border-color: var(--primary); color: #615d59; }
+.insight-warn   { background: rgba(221,91,0,0.05);   border-color: var(--warn);    color: #615d59; }
+.insight-success{ background: rgba(42,157,153,0.06); border-color: var(--success); color: #615d59; }
+.insight strong { color: rgba(0,0,0,0.9); font-weight: 600; }
+
+/* ── Table ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  background: #f6f5f4;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a39e98;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td { padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,0.07); color: rgba(0,0,0,0.85); font-size: 12px; vertical-align: middle; line-height: 1.6; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(0,0,0,0.02); }
+.data-table td strong { color: rgba(0,0,0,0.95); font-weight: 600; }
+
+.badge { display:inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 600; letter-spacing: 0.1px; }
+.badge-red    { background: rgba(220,38,38,0.08);  color: #b91c1c; border: 1px solid rgba(220,38,38,0.15); }
+.badge-amber  { background: rgba(221,91,0,0.08);   color: #c2410c; border: 1px solid rgba(221,91,0,0.15); }
+.badge-green  { background: rgba(42,157,153,0.1);  color: #0f766e; border: 1px solid rgba(42,157,153,0.2); }
+.badge-gray   { background: rgba(0,0,0,0.05);      color: #615d59; border: 1px solid rgba(0,0,0,0.1); }
+.badge-p0 { background: rgba(185,28,28,0.07); color: #b91c1c; border: 1px solid rgba(185,28,28,0.18); font-weight: 700; border-radius: 9999px; }
+.badge-p1 { background: rgba(194,65,12,0.07); color: #c2410c; border: 1px solid rgba(194,65,12,0.18); font-weight: 700; border-radius: 9999px; }
+.badge-p2 { background: rgba(21,128,61,0.07);  color: #15803d; border: 1px solid rgba(21,128,61,0.18);  font-weight: 700; border-radius: 9999px; }
+
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-seg { height: 6px; border-radius: 3px; }
+
+/* ── Section label strip ── */
+.label-strip {
+  font-size: 12px;
+  font-weight: 600;
+  color: #615d59;
+  padding: 9px 14px;
+  background: #f6f5f4;
+  border-radius: 6px;
+  border-left: 3px solid rgba(0,0,0,0.15);
+  margin-bottom: 12px;
+  letter-spacing: 0.1px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">Skill-Agent 实验报告</div>
+    <div class="sub">磁力万合开通 · 311 场景<br>150 sessions · 4 维度</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label">实验背景</div>
+      <a class="nav-item" href="#intro">
+        <div class="nav-dot" style="background:#a39e98"></div>实验介绍
+      </a>
+      <a class="nav-item" href="#conclusion">
+        <div class="nav-dot" style="background:var(--primary)"></div>实验结论
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">数据分析</div>
+      <a class="nav-item active" href="#kpi">
+        <div class="nav-dot" style="background:var(--primary)"></div>核心指标总览
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">维度分析</div>
+      <a class="nav-item" href="#dim1">
+        <div class="nav-dot" style="background:var(--doc)"></div>维度一·识别能力
+      </a>
+      <a class="nav-item" href="#dim2">
+        <div class="nav-dot" style="background:var(--flow)"></div>维度二·解决力
+      </a>
+      <a class="nav-item" href="#dim3">
+        <div class="nav-dot" style="background:var(--success)"></div>维度三·体验
+      </a>
+      <a class="nav-item" href="#dim4">
+        <div class="nav-dot" style="background:var(--danger)"></div>维度四·风险合规
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">优劣势对比</div>
+      <a class="nav-item" href="#pros1">
+        <div class="nav-dot" style="background:#64748b"></div>识别维度优劣势
+      </a>
+      <a class="nav-item" href="#pros2">
+        <div class="nav-dot" style="background:#64748b"></div>解决力优劣势
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">行动建议</div>
+      <a class="nav-item" href="#action">
+        <div class="nav-dot" style="background:var(--warn)"></div>优化优先级建议
+      </a>
+    </div>
+  </div>
+  <div class="sidebar-legend">
+    <div class="legend-title">图例</div>
+    <div class="legend-row"><div class="legend-dot" style="background:var(--doc)"></div>文档转译 skill（实验组1）</div>
+    <div class="legend-row"><div class="legend-dot" style="background:var(--flow)"></div>流程转译 skill 版（实验组2）</div>
+    <div class="legend-row"><div class="legend-dot" style="background:var(--ctrl)"></div>线上对照版（对照组）</div>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-title">Skill-Agent 实验评估数据可视化报告</div>
+    <div class="topbar-meta">
+      <div class="meta-chip">总 Session <strong>150</strong></div>
+      <div class="meta-chip">每组样本 <strong>50</strong></div>
+      <div class="meta-chip">评估维度 <strong>4</strong></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ 实验介绍 ═══ -->
+    <div class="section" id="intro">
+      <div class="section-header">
+        <div class="section-num" style="background:#a39e98">♥</div>
+        <div>
+          <div class="section-title">实验背景与方案介绍</div>
+          <div class="section-sub">本次实验共 3 个方案，每组 50 个 session</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+
+        <div class="card" style="border-top:3px solid var(--ctrl)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(138,134,128,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💻</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--text)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ctrl);margin-right:6px;vertical-align:middle"></span>线上对照版（对照组）</div>
+              <div style="font-size:11.5px;color:var(--text3);margin-top:2px">现有线上多轮流程</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">
+            基于人工配置的多轮对话流程，每个意图路径均需运营逐节点配置。回复话术基于<strong style="color:var(--text)">固定模板</strong>，覆盖场景内的标准路径。
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:#f6f5f4;border-radius:6px;font-size:12px;color:#a39e98">
+            📌 实验本质：基准线，衡量其他两组的改变幅度
+          </div>
+        </div>
+
+        <div class="card" style="border-top:3px solid var(--doc)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(37,99,235,0.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📄</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--text)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--doc);margin-right:6px;vertical-align:middle"></span>文档转译 skill（实验组1）</div>
+              <div style="font-size:11.5px;color:var(--text3);margin-top:2px">基于 LLM + 原始SOP文档</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">
+            将原始SOP文档直接转译为 skill 知识库，大模型基于<strong style="color:var(--text)">语义理解</strong>动态匹配意图、调用工具获取实时数据、生成回复。知识来源最完整，开发成本最低。
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:rgba(37,99,235,0.04);border-radius:6px;font-size:12px;color:#2563eb">
+            📌 转译源：SOP文档 → 一次转译 → skill 知识库
+          </div>
+        </div>
+
+        <div class="card" style="border-top:3px solid var(--flow)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,0.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔄</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--text)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--flow);margin-right:6px;vertical-align:middle"></span>流程转译 skill 版（实验组2）</div>
+              <div style="font-size:11.5px;color:var(--text3);margin-top:2px">基于 LLM + 已有流程结构</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">
+            将现有多轮流程转译为 skill 格式，保留原有流程层级和节点关系。大模型在<strong style="color:var(--text)">已有流程内</strong>基于语义理解回复，不需重写话术。转译成本中等。
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:rgba(124,58,237,0.04);border-radius:6px;font-size:12px;color:#7c3aed">
+            📌 转译源：SOP → 流程 → skill（两次转译）
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ 实验结论 ═══ -->
+    <div class="section" id="conclusion">
+      <div class="section-header">
+        <div class="section-num" style="background:var(--primary)">&#9654;</div>
+        <div>
+          <div class="section-title">实验结论：一句话看懂</div>
+          <div class="section-sub">踏过详细数据，直达核心判断</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <div class="card" style="border-left:4px solid var(--success);padding-left:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--success);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px">✅ 路径验证</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:12px">大模型 skill-agent 架构具备取代多轮流程的运行能力</div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">识别准确率显著高于对照组（+24pp），回复展现更友好（+12pp），对话效率持平，证明路径可行。</div>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--warn);padding-left:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--warn);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px">⚠️ 待破题</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:12px">上线前需解决风险输出和完整性两个问题</div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">实验组风险内容出现率 8–10%，方案信息不完整是目前最大痛点，两项均为可修复的工程问题。</div>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--doc);padding-left:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--doc);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px">🏆 初版建议首选方案</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:12px">文档转译 skill 是当前综合天花板最高的方案</div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">识别、友好度均显著优于对照组，且知识来源最完整、可维护性最高；解决力略低的原因已明确（少查询），修复后预期效果可超越对照组。</div>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--text3);padding-left:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px">📌 尚需注意</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:12px">完全解决率未超越对照组（符合预期）</div>
+          <div style="font-size:13px;color:#615d59;line-height:1.85">初版已验证路径可行性，完全解决率的提升需要【查询工具调用】和【回复限制】均进一步调优。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ KPI ═══ -->
+    <div class="section" id="kpi">
+      <div class="section-header">
+        <div class="section-num">☆</div>
+        <div>
+          <div class="section-title">数据拆解：核心指标总览</div>
+          <div class="section-sub">5 项核心评估指标，三组横向对比</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+
+        <div class="kpi-card">
+          <div class="kpi-label">识别准确率</div>
+          <div class="kpi-rows">
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">文档转译 skill</span><span class="kpi-val" style="color:var(--doc)">86%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:86%;background:var(--doc)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">流程转译 skill</span><span class="kpi-val" style="color:var(--flow)">80%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:80%;background:var(--flow)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">线上对照版</span><span class="kpi-val" style="color:var(--ctrl)">62%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:62%;background:var(--ctrl)"></div></div>
+            </div>
+          </div>
+          <span class="kpi-badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">🏆 文档转译最高</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">完全解决率</div>
+          <div class="kpi-rows">
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">线上对照版</span><span class="kpi-val" style="color:var(--ctrl)">52%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:52%;background:var(--ctrl)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">文档转译 skill</span><span class="kpi-val" style="color:var(--doc)">48%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:48%;background:var(--doc)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">流程转译 skill</span><span class="kpi-val" style="color:var(--flow)">46%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:46%;background:var(--flow)"></div></div>
+            </div>
+          </div>
+          <span class="kpi-badge" style="background:rgba(107,114,128,0.15);color:#9ca3af">≈ 三组接近</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">交互友好率</div>
+          <div class="kpi-rows">
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">文档转译 skill</span><span class="kpi-val" style="color:var(--doc)">94%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:94%;background:var(--doc)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">流程转译 skill</span><span class="kpi-val" style="color:var(--flow)">86%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:86%;background:var(--flow)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">线上对照版</span><span class="kpi-val" style="color:var(--ctrl)">82%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:82%;background:var(--ctrl)"></div></div>
+            </div>
+          </div>
+          <span class="kpi-badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">🏆 文档转译最高</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">对话高效率</div>
+          <div class="kpi-rows">
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">流程转译 skill</span><span class="kpi-val" style="color:var(--flow)">94%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:94%;background:var(--flow)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">文档转译 skill</span><span class="kpi-val" style="color:var(--doc)">92%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:92%;background:var(--doc)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">线上对照版</span><span class="kpi-val" style="color:var(--ctrl)">92%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:92%;background:var(--ctrl)"></div></div>
+            </div>
+          </div>
+          <span class="kpi-badge" style="background:rgba(107,114,128,0.15);color:#9ca3af">≈ 三组持平</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">风险回复率</div>
+          <div class="kpi-rows">
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">流程转译 skill</span><span class="kpi-val" style="color:var(--danger)">10%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:10%;background:var(--danger)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">文档转译 skill</span><span class="kpi-val" style="color:var(--warn)">8%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:8%;background:var(--warn)"></div></div>
+            </div>
+            <div class="kpi-entry">
+              <div class="kpi-line"><span class="kpi-ver">线上对照版</span><span class="kpi-val" style="color:var(--success)">0%</span></div>
+              <div class="kpi-track"><div class="kpi-fill" style="width:0%;background:var(--ctrl)"></div></div>
+            </div>
+          </div>
+          <span class="kpi-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5">⚠️ 实验组有风险</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ DIM 1: 识别 ═══ -->
+    <div class="section" id="dim1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">维度一：识别能力对比</div>
+          <div class="section-sub">三组在「理解用户意图」上的差异与原因</div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <!-- 图1 -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">识别结果构成分布（三组对比）</div>
+            <div class="card-sub">每组 50 条 session；绿=识别准确，黄=部分准确；三组均无识别错误</div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="chart-recognize"></canvas></div>
+          <div class="divider"></div>
+          <div class="analysis-stack">
+            <div class="ablock ablock-blue">
+              <div class="ablock-tag">📊 数据结论</div>
+              <div class="ablock-item">① 识别准确率：<strong>文档转译skill（86%）</strong> > <strong>流程转译skill版（80%）</strong> > <strong>线上对照版（62%）</strong></div>
+              <div class="ablock-item">② 三组均无「识别错误」，差异集中在「<strong>部分准确</strong>」占比——对照组高达 <strong>38%</strong>，两实验组分别为 <strong>14%</strong> 和 <strong>20%</strong></div>
+            </div>
+            <div class="ablock ablock-purple">
+              <div class="ablock-tag">🔍 原因分析</div>
+              <div class="ablock-item">「<strong>部分准确</strong>」指主意图识别正确，但对<strong>意图变化</strong>或<strong>补充信息理解有偏差</strong>。固定多轮流程只能识别单场景主意图，用户追问/转变诉求时<strong>流程节点无法动态跟进</strong>，大量落入「部分准确」。<strong>LLM-based skill</strong> 基于语义理解，天然具备<strong>多轮动态识别能力</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图2 -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">相较线上对照版的识别提升幅度</div>
+            <div class="card-sub">以对照组（62%）为基准，展示两实验组识别准确率提升 pp 值</div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="chart-recognize2"></canvas></div>
+          <div class="divider"></div>
+          <div class="analysis-stack">
+            <div class="ablock ablock-green">
+              <div class="ablock-tag">🏆 三组对比结论</div>
+              <div class="ablock-item">① <strong>文档转译skill</strong> 提升最明显（<strong>+24pp</strong>）——SOP文档保留完整原始语义，识别容错性最高</div>
+              <div class="ablock-item">② <strong>流程转译skill版</strong> 提升也较显著（<strong>+18pp</strong>），但流程在「人工→多轮节点」转换时已有信息损耗，对<strong>非标意图</strong>的覆盖不及文档转译版</div>
+            </div>
+            <div class="ablock ablock-amber">
+              <div class="ablock-tag">💡 建议优化方向</div>
+              <div class="ablock-item">对照组存在<strong>结构性识别瓶颈</strong>；两实验组可进一步优化 skill 中对「<strong>意图澄清</strong>」和「<strong>关联场景补充</strong>」的识别引导，降低剩余「部分准确」占比</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 识别优劣势 -->
+      <div style="margin-top:16px" id="pros1">
+        <div class="label-strip">📌 识别能力天然优劣势：三条路径能识别到什么程度？</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+
+          <div class="pc-card" style="border-top-color:var(--ctrl)">
+            <div class="pc-card-title">线上对照版（多轮流程）</div>
+            <div class="pc-section">
+              <div class="pc-label pro">✅ 优势</div>
+              <div class="pc-item">
+                <span class="pc-sub-label">稳定性</span>
+                · 预设场景内意图识别<strong>稳定可控</strong>，不会出现方向性偏差
+              </div>
+            </div>
+            <hr class="pc-divider">
+            <div class="pc-section" style="margin-bottom:0">
+              <div class="pc-label con">❌ 劣势</div>
+              <div class="pc-item" style="margin-bottom:8px">
+                <span class="pc-sub-label">能力边界</span>
+                · 只能识别<strong>提前配置好的意图路径</strong>，较难灵活承接用户的个性化追问
+              </div>
+              <div class="pc-item">
+                <span class="pc-sub-label">可持续性</span>
+                · <strong>运营侧持续扩充意图规则的边际效益递减</strong>——规则越加越多维护成本线性增长，但遇到新表达或边缘意图仍会断路；这是规则匹配模式的结构性上限
+              </div>
+            </div>
+          </div>
+
+          <div class="pc-card" style="border-top-color:var(--doc)">
+              <div class="pc-card-title">文档转译 skill（实验组1）</div>
+              <div class="pc-section">
+                <div class="pc-label pro">✅ 优势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">动态识别</span>
+                  · 基于<strong>语义理解</strong>动态感知意图，不依赖固定路径——用户追加信息、中途转变诉求、换个说法，都能灵活承接
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">知识完整性</span>
+                  · 知识来自原始SOP，<strong>覆盖面最完整</strong>，识别容错性最高
+                </div>
+              </div>
+              <hr class="pc-divider">
+              <div class="pc-section" style="margin-bottom:0">
+                <div class="pc-label con">❌ 劣势</div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">意图边界模糊</span>
+                  · 语义越灵活，<strong>意图边界越模糊</strong>——对相似但不同的意图，模型有时可能判断不准
+                </div>
+              </div>
+            </div>
+
+            <div class="pc-card" style="border-top-color:var(--flow)">
+              <div class="pc-card-title">流程转译 skill 版（实验组2）</div>
+              <div class="pc-section">
+                <div class="pc-label pro">✅ 优势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">动态识别</span>
+                  · 语义驱动，识别能力<strong>优于固定流程</strong>
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">场景边界清晰</span>
+                  · 保留了流程的场景边界，减少泛化误判风险
+                </div>
+              </div>
+              <hr class="pc-divider">
+              <div class="pc-section" style="margin-bottom:0">
+                <div class="pc-label con">❌ 劣势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">知识损耗</span>
+                  · 流程转译带来的<strong>知识损耗</strong>，导致非标意图覆盖范围窄于文档转译版
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">质量上限</span>
+                  · 识别上限受制于<strong>原始流程的设计质量</strong>
+                </div>
+              </div>
+            </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ DIM 2: 解决力 ═══ -->
+    <div class="section" id="dim2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">维度二：解决力对比</div>
+          <div class="section-sub">三组在「给出有效方案」上的差异与根因</div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <!-- 图3 -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">解决力主标项分布（三组对比）</div>
+            <div class="card-sub">完全解决 / 部分解决 / 未解决；每组 50 条 session</div>
+          </div>
+          <div class="chart-wrap" style="height:220px"><canvas id="chart-resolve"></canvas></div>
+          <div class="divider"></div>
+          <div class="analysis-stack">
+            <div class="ablock ablock-blue">
+              <div class="ablock-tag">📊 数据结论</div>
+              <div class="ablock-item">完全解决率：<strong>线上对照版（52%）</strong> > <strong>文档转译skill（48%）</strong> > <strong>流程转译skill版（46%）</strong>，差距在 <strong>6pp</strong> 内，说明<strong>方案完整性是三组共同短板</strong></div>
+              <div class="ablock-item">关键差异：<strong>流程转译skill版出现2例未解决（4%）</strong>，文档转译skill<strong>未解决为0</strong>，说明流程转译版在极端case兜底能力最弱</div>
+            </div>
+            <div class="ablock ablock-purple">
+              <div class="ablock-tag">🔍 各版本部分解决/未解决的核心原因</div>
+              <div class="ver-item">
+                <div class="ver-title">线上对照版</div>
+                <div class="ablock-item">· 主因：<strong>识别偏差引发方案方向错误</strong>——上游意图识别不准导致回复答非所问</div>
+                <div class="ablock-item">· 次因：<strong>流程配置缺陷或模型幻觉</strong>导致方案不准确（已与运营确认）</div>
+              </div>
+              <div class="ver-item">
+                <div class="ver-title">文档转译 skill</div>
+                <div class="ablock-item">· 主因：<strong>缺少代查询信息</strong>——未主动查询粉丝量、实名认证结果、账号违规情况等关键状态</div>
+                <div class="ablock-item">· 次因①：LLM幻觉——<strong>错误引导用户提供用户ID</strong>、<strong>误改反馈时效</strong>、<strong>编造方案内容</strong></div>
+                <div class="ablock-item">· 次因②：<strong>查询返回字段缺乏语义说明</strong>——skill未解释API返回字段含义和取值范围，不同模型对同一字段理解不一致，即使查到数据也可能因<strong>字段误读输出错误内容</strong>（两实验组共性）</div>
+              </div>
+              <div class="ver-item">
+                <div class="ver-title">流程转译 skill 版</div>
+                <div class="ablock-item">· 主因：<strong>缺少代查询信息</strong>（与文档转译版相同，两实验组共性短板）</div>
+                <div class="ablock-item">· 次因①：存在<strong>缺少关键链接</strong>、<strong>错误引导用户提供用户ID</strong>等问题</div>
+                <div class="ablock-item">· 次因②：<strong>查询返回字段缺乏语义说明</strong>（同上，两实验组共性问题）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图4 -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">问题标签分布（三组对比）</div>
+            <div class="card-sub">部分解决/未解决的具体问题分类，可多选，按绝对数量统计</div>
+          </div>
+          <div class="chart-wrap" style="height:220px"><canvas id="chart-tags"></canvas></div>
+          <div class="divider"></div>
+          <div class="analysis-stack">
+            <div class="ablock ablock-green">
+              <div class="ablock-tag">🏆 三组对比结论</div>
+              <div class="ver-item">
+                <div class="ver-title">① 方案信息不完整是三组共同短板</div>
+                <div class="ablock-item">· <strong>方案信息不完整</strong>是三组最高频问题（<strong>23–26条</strong>），不因版本而异，属<strong>系统性能力缺口</strong></div>
+                <div class="ablock-item">· 两实验组集中在<strong>少查询</strong>，根源是 skill <strong>触发代查工具时机不准确</strong>（大部分为应查未查）</div>
+                <div class="ablock-item">· 对照版的「部分解决」更多来自<strong>识别层误判传导</strong>，属上游问题下沉</div>
+              </div>
+              <div class="ver-item">
+                <div class="ver-title">② LLM 回复相关性显著优于固定流程</div>
+                <div class="ablock-item">· 两实验组均无<strong>答非所问</strong>，对照版出现 <strong>1次</strong></div>
+                <div class="ablock-item">· 说明 <strong>LLM-based skill</strong> 在回复相关性上具有结构性优势</div>
+              </div>
+              <div class="ver-item">
+                <div class="ver-title">③ 流程转译版存在极端case兜底失效</div>
+                <div class="ablock-item">· <strong>方案错误（1次）</strong>：输出错误内容，归因为流程翻译的<strong>知识转换损耗</strong></div>
+                <div class="ablock-item">· <strong>无法提供方案（1次）</strong>：归因尚存疑，可能是<strong>服务接口调用失败</strong>或<strong>skill知识覆盖盲区</strong>，<span style="color:var(--warn);font-weight:600">需结合session日志进一步排查</span></div>
+              </div>
+            </div>
+            <div class="ablock ablock-amber">
+              <div class="ablock-tag">💡 建议优化方向</div>
+              <div class="ablock-item">① <strong>P0：</strong>补充<strong>代查询工具触发规则</strong>，识别到粉丝量/实名认证/账号违规等查询需求时自动触发</div>
+              <div class="ablock-item">② <strong>字段语义标注：</strong>在skill知识配置中补充API返回字段的<strong>含义说明和枚举值解释</strong></div>
+              <div class="ablock-item">③ <strong>幻觉管控：</strong>在prompt中增加<strong>事实约束指令</strong>，禁止模型生成无法核实的信息</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 问题明细表 -->
+      <div class="card card-full" style="margin-top:16px">
+        <div class="card-head">
+          <div class="card-title">问题标签明细表</div>
+          <div class="card-sub">所有出现过的问题标签汇总，含优先级与优化方向</div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>问题标签</th><th>问题说明</th><th>文档转译skill</th><th>流程转译skill版</th><th>线上对照版</th><th>优先级</th><th>优化方向</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-red">方案信息不完整</span></td>
+              <td style="font-size:12px;color:#374151">回答信息不完整，用户需反复追问；<br><span style="color:#6b7280;font-size:11.5px">其中部分由<strong style="color:#374151">少查询</strong>引起——skill未主动代查关键状态，导致方案缺乏必要数据支撑</span></td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:52px;background:var(--doc)"></div><strong>26</strong></div></td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:50px;background:var(--flow)"></div><strong>25</strong></div></td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:46px;background:var(--ctrl)"></div><strong>23</strong></div></td>
+              <td><span class="badge badge-p0">P0</span></td>
+              <td style="font-size:12px;color:#374151">Prompt 加「完整性自检」指令，要求模型输出前核查关键字段是否透传</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-amber">少查询</span></td>
+              <td style="font-size:12px;color:#374151">缺少代查询信息，用户需自行查</td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:18px;background:var(--doc)"></div><strong>9</strong></div></td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:14px;background:var(--flow)"></div><strong>7</strong></div></td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:12px;background:var(--ctrl)"></div><strong>6</strong></div></td>
+              <td><span class="badge badge-p1">P1</span></td>
+              <td style="font-size:12px;color:#374151">Skill 补充工具调用触发条件，识别到「查询类」意图时主动触发代查脚本</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-amber">答非所问</span></td>
+              <td style="font-size:12px;color:#374151">回复内容与用户问题无关</td>
+              <td>—</td><td>—</td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:4px;background:var(--ctrl)"></div><strong>1</strong></div></td>
+              <td><span class="badge badge-gray">P2</span></td>
+              <td style="font-size:12px;color:#374151">排查对应流程节点的意图判断逻辑</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">方案错误</span></td>
+              <td style="font-size:12px;color:#374151">给出错误方案，无法解决问题</td>
+              <td>—</td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:4px;background:var(--flow)"></div><strong>1</strong></div></td>
+              <td>—</td>
+              <td><span class="badge badge-p0">P0</span></td>
+              <td style="font-size:12px;color:#374151">排查流程转译知识转换错误，增加事实一致性校验</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">无法提供方案</span></td>
+              <td style="font-size:12px;color:#374151">无法给出任何有效方案</td>
+              <td>—</td>
+              <td><div class="bar-row"><div class="bar-seg" style="width:4px;background:var(--flow)"></div><strong>1</strong></div></td>
+              <td>—</td>
+              <td><span class="badge badge-p1">P1</span></td>
+              <td style="font-size:12px;color:#374151">归因待排查（服务接口 or 知识覆盖盲区），需结合 session 日志确认</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 解决力优劣势 -->
+      <div style="margin-top:20px" id="pros2">
+        <div class="label-strip">📌 方案回复与解决力天然优劣势：谁能给出更好的答案？</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+
+          <div class="pc-card" style="border-top-color:var(--ctrl)">
+            <div class="pc-card-title">线上对照版（多轮流程）</div>
+            <div class="pc-section">
+              <div class="pc-label pro">✅ 优势</div>
+              <div class="pc-item" style="margin-bottom:8px">
+                <span class="pc-sub-label">可预期性</span>
+                · 方案经人工配置→审核→测试，<strong>输出完全可预期，几乎无幻觉，无风险内容</strong>
+              </div>
+              <div class="pc-item">
+                <span class="pc-sub-label">覆盖准确</span>
+                · 标准场景内的解答<strong>完整且准确</strong>
+              </div>
+            </div>
+            <hr class="pc-divider">
+            <div class="pc-section" style="margin-bottom:0">
+              <div class="pc-label con">❌ 劣势</div>
+              <div class="pc-item" style="margin-bottom:8px">
+                <span class="pc-sub-label">用户侧</span>
+                · 只能回答<strong>预先配置好的问题</strong>——用户问偏、追问或换种说法，即无方案可给
+              </div>
+              <div class="pc-item">
+                <span class="pc-sub-label">运营侧</span>
+                · 业务规则变化后，<strong>每个流程节点都要手动更新</strong>，运营维护成本极高
+              </div>
+            </div>
+          </div>
+
+          <div class="pc-card" style="border-top-color:var(--doc)">
+              <div class="pc-card-title">文档转译 skill（实验组1）</div>
+              <div class="pc-section">
+                <div class="pc-label pro">✅ 优势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">灵活承接</span>
+                  · 基于语义理解，<strong>能承接个性化追问</strong>——用户追加信息、转变诉求、换种说法均可跟进
+                </div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">知识完整性</span>
+                  · 直接来自原始SOP，<strong>覆盖面最完整</strong>，可应对更多场景变体
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">可维护性</span>
+                  · 业务更新只需重跑一次转译，<strong>维护成本远低于逐节点手动配置</strong>
+                </div>
+              </div>
+              <hr class="pc-divider">
+              <div class="pc-section" style="margin-bottom:0">
+                <div class="pc-label con">❌ 劣势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">幻觉风险</span>
+                  · 工具调用策略不完善时，<strong>可能编造方案或引用错误信息</strong>
+                </div>
+              </div>
+            </div>
+            <div class="pc-card" style="border-top-color:var(--flow)">
+              <div class="pc-card-title">流程转译 skill 版（实验组2）</div>
+              <div class="pc-section">
+                <div class="pc-label pro">✅ 优势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">灵活性</span>
+                  · 语义驱动，灵活性<strong>优于固定多轮流程</strong>
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">对话效率</span>
+                  · 保留流程精简结构，<strong>对话路径短，效率高</strong>
+                </div>
+              </div>
+              <hr class="pc-divider">
+              <div class="pc-section" style="margin-bottom:0">
+                <div class="pc-label con">❌ 劣势</div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">知识损耗</span>
+                  · 经历 SOP→流程→skill 两次转换，<strong>信息损耗最大</strong>，方案深度最弱
+                </div>
+                <div class="pc-item" style="margin-bottom:8px">
+                  <span class="pc-sub-label">质量上限</span>
+                  · <strong>原始流程的缺陷会被原样继承</strong>，能力上限受制于流程本身的设计质量
+                </div>
+                <div class="pc-item">
+                  <span class="pc-sub-label">幻觉风险</span>
+                  · 幻觉风险同样存在，且知识量更少，模型更难以正确知识抑制幻觉
+                </div>
+              </div>
+            </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ DIM 3: 体验 ═══ -->
+    <div class="section" id="dim3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">维度三：体验对比</div>
+          <div class="section-sub">交互友好度与对话效率</div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">交互友好度对比</div>
+            <div class="card-sub">「好」占比越高越优；每组 50 条 session</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0 12px">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:13px;font-weight:600;color:var(--doc)">&#9646; 文档转译 skill</span>
+                <span style="font-size:22px;font-weight:800;color:var(--doc);letter-spacing:-0.5px">94%</span>
+              </div>
+              <div style="height:10px;background:#e8ecf8;border-radius:6px;overflow:hidden">
+                <div style="width:94%;height:100%;background:var(--doc);border-radius:6px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:13px;font-weight:600;color:var(--flow)">&#9646; 流程转译 skill 版</span>
+                <span style="font-size:22px;font-weight:800;color:var(--flow);letter-spacing:-0.5px">86%</span>
+              </div>
+              <div style="height:10px;background:#f0e8f8;border-radius:6px;overflow:hidden">
+                <div style="width:86%;height:100%;background:var(--flow);border-radius:6px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:13px;font-weight:600;color:var(--ctrl)">&#9646; 线上对照版</span>
+                <span style="font-size:22px;font-weight:800;color:var(--ctrl);letter-spacing:-0.5px">82%</span>
+              </div>
+              <div style="height:10px;background:#eff0f2;border-radius:6px;overflow:hidden">
+                <div style="width:82%;height:100%;background:var(--ctrl);border-radius:6px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="insight insight-success">
+            <strong>现状：</strong>三组交互友好率排序为<strong>文档转译skill（94%）> 流程转译skill版（86%）> 线上对照版（82%）</strong>，文档转译版比对照组高 <strong>12pp</strong>，差距明显。<br><br>
+            <strong>原因：</strong><br>
+            1. 对照版依赖固定话术模板，回复灵活度低，用户感知差；<br>
+            2. LLM-based skill 基于语义理解，能根据用户当前情绪和措辞动态调整表达，在<strong>情绪安抚、措辞清晰度、追问承接</strong>上显著优于规则流程。<br><br>
+            <strong>需说明的是：</strong>友好率衡量的是<strong>回复的表达质量</strong>，与「是否解决了问题」是两个不同维度——文档转译版友好率 94% 但完全解决率仅 48%，说明大模型在方案表达和呈现上更友好清晰，但<strong>表达优秀的前提是工具调用和知识覆盖到位</strong>，两者需协同提升。
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">对话效率对比</div>
+            <div class="card-sub">三组差异细微（仅 2pp）；横坐标从 88% 起步，使细微差距更易读</div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="chart-efficiency"></canvas></div>
+          <div class="insight insight-info">
+            <strong>现状：</strong>三组效率几乎一致（92–94%），差距仅 2pp，无显著差异。<br><br>
+            <strong>需说明的是：</strong><br>
+            1. 对照版（多轮流程）因<strong>识别偏差或回复不完整</strong>，实际交互中存在<strong>用户反复追问、澄清</strong>的情况，交互费力度理论上更高；<br>
+            2. LLM-based skill 基于语义理解，本应在<strong>减少无效追问和澄清问题</strong>上更有优势。<br>
+            三组当前数值接近，说明<strong>第一版 skill 在对话效率上尚未拉开差距</strong>（在预期之内），初版主要验证路径可行性，效率优化需在<strong>工具调用和知识覆盖</strong>完善后进一步体现。<br><br>
+            <strong>后续关注：</strong>随着「少查询」问题修复、方案完整性自检优化，预期<strong>用户追问次数应有明显下降</strong>，对话效率指标预期在<strong>下一版本中显著优于对照组</strong>。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ DIM 4: 风险 ═══ -->
+    <div class="section" id="dim4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">维度四：风险合规</div>
+          <div class="section-sub">LLM 幻觉带来的风险回复率——上线前必须解决</div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">风险回复率对比</div>
+            <div class="card-sub">越低越好；实验组出现 LLM 幻觉导致的风险内容</div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="chart-risk"></canvas></div>
+          <div class="insight insight-warn">
+            <strong>⚠️ 重点关注：</strong>两实验组均出现风险内容（8% / 10%），对照组为 0%<br>
+            主要集中在表述<strong>「系统错误、系统出现小问题」</strong>、<strong>「暴露二线专员、流转」</strong>等字眼；<br>
+            建议增加<strong>【风险输出限制规则】</strong>，覆盖：内网链接检测、过度承诺语义识别、内容合规规则等。
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">综合能力雷达图</div>
+            <div class="card-sub">五维能力全景对比（数值越大越好；风险指标已取反处理）</div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="chart-radar"></canvas></div>
+          <div class="insight insight-info">
+            <strong>综合来看：</strong><br>
+            文档转译 skill 在<strong>识别、友好度</strong>维度领先；<br>
+            对照版在<strong>回复方案的安全合规性</strong>上具有一定优势；<br>
+            三组交互效率接近——文档转译 skill 在识别、友好度两个维度显著领先，<strong>解决力问题可修复</strong>，是<strong>综合天花板最高的方案</strong>。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══ ACTION ═══ -->
+    <div class="section" id="action">
+      <div class="section-header">
+        <div class="section-num">!</div>
+        <div>
+          <div class="section-title">产研优化优先级建议</div>
+          <div class="section-sub">按优先级排列，P0 为上线前必须解决</div>
+        </div>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr><th>优先级</th><th>问题</th><th>影响范围</th><th>具体表现</th><th>优化方向</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-p0">P0 立即处理</span></td>
+              <td><strong>风险内容输出</strong></td>
+              <td style="font-size:13px;color:#374151">文档转译 8%、流程转译 10%</td>
+              <td style="font-size:13px;color:#374151">LLM 幻觉导致不当内容（内网链接/过度承诺等）</td>
+              <td style="font-size:13px;color:#374151">上线前必须增加 output guardrail 过滤层</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-p0">P0 立即处理</span></td>
+              <td><strong>方案信息不完整</strong></td>
+              <td style="font-size:13px;color:#374151">三组均超 46%（部分解决率）</td>
+              <td style="font-size:13px;color:#374151">用户需反复追问才能获取完整信息</td>
+              <td style="font-size:13px;color:#374151">Prompt 增加「完整性自检」，要求模型检查关键字段是否覆盖</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-p1">P1 迭代优化</span></td>
+              <td><strong>少查询</strong></td>
+              <td style="font-size:13px;color:#374151">三组均有（6–9次）</td>
+              <td style="font-size:13px;color:#374151">缺少代查询信息，用户需自行操作</td>
+              <td style="font-size:13px;color:#374151">Skill 中补充工具调用触发规则，识别到"查询类"时自动触发</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-p1">P1 迭代优化</span></td>
+              <td><strong>查询字段语义缺失</strong></td>
+              <td style="font-size:13px;color:#374151">两实验组共性问题</td>
+              <td style="font-size:13px;color:#374151">API返回字段无语义说明，模型解读不一致，查了也可能输出错误内容</td>
+              <td style="font-size:13px;color:#374151">在 skill 知识配置中补充每个返回字段的含义和枚举值解释</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-p1">P1 迭代优化</span></td>
+              <td><strong>流程转译知识盲区</strong></td>
+              <td style="font-size:13px;color:#374151">流程转译版：方案错误1次、无法提供方案1次</td>
+              <td style="font-size:13px;color:#374151">流程翻译知识丢失或接口异常</td>
+              <td style="font-size:13px;color:#374151">增加知识一致性校验，排查接口稳定性，补充 fallback 兜底策略</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-p2">P2 持续改善</span></td>
+              <td><strong>完全解决率整体偏低</strong></td>
+              <td style="font-size:13px;color:#374151">三组完全解决率仅 46–52%</td>
+              <td style="font-size:13px;color:#374151">超过一半 session 仅部分解决</td>
+              <td style="font-size:13px;color:#374151">扩展知识库覆盖范围，提升工具调用成功率，优化多轮追问策略</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = 'rgba(0,0,0,0.07)';
+const DOC='#2563eb', FLOW='#7c3aed', CTRL='#6b7280';
+const GOOD='#10b981', WARN='#f59e0b', BAD='#ef4444';
+const labels=['文档转译skill','流程转译skill版','线上对照版'];
+
+// 1. 识别堆叠
+new Chart(document.getElementById('chart-recognize'),{
+  type:'bar',
+  data:{labels,datasets:[
+    {label:'识别准确',data:[43,40,31],backgroundColor:GOOD,stack:'a'},
+    {label:'部分准确',data:[7,10,19],backgroundColor:WARN,stack:'a'}
+  ]},
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:11}}}},
+    scales:{
+      x:{stacked:true,max:50,grid:{color:'rgba(0,0,0,0.05)'},ticks:{color:'#9ca3af',font:{size:11}}},
+      y:{stacked:true,grid:{display:false},ticks:{color:'#6b7280',font:{size:11}}}
+    }
+  }
+});
+
+// 2. 提升幅度
+new Chart(document.getElementById('chart-recognize2'),{
+  type:'bar',
+  data:{
+    labels:['文档转译 skill','流程转译 skill 版'],
+    datasets:[{label:'相较对照组提升（pp）',data:[24,18],backgroundColor:[DOC,FLOW],borderRadius:8,barThickness:56}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` +${ctx.raw}pp（相较对照组 62%）`}}},
+    scales:{
+      y:{min:0,max:30,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>`+${v}pp`,color:'#9ca3af',font:{size:11}}},
+      x:{grid:{display:false},ticks:{color:'#374151',font:{size:13,weight:'600'}}}
+    },
+    animation:{onComplete:function(){
+      const chart=this,ctx=chart.ctx;
+      ctx.save();ctx.font='bold 15px IBM Plex Sans,sans-serif';
+      ctx.fillStyle='#111827';ctx.textAlign='center';ctx.textBaseline='bottom';
+      chart.data.datasets.forEach((ds,i)=>{
+        chart.getDatasetMeta(i).data.forEach((bar,idx)=>{ctx.fillText(`+${ds.data[idx]}pp`,bar.x,bar.y-6);});
+      });ctx.restore();
+    }}
+  }
+});
+
+// 3. 解决力堆叠
+new Chart(document.getElementById('chart-resolve'),{
+  type:'bar',
+  data:{labels,datasets:[
+    {label:'完全解决',data:[24,23,26],backgroundColor:GOOD,stack:'a'},
+    {label:'部分解决',data:[26,25,23],backgroundColor:WARN,stack:'a'},
+    {label:'未解决',data:[0,2,1],backgroundColor:BAD,stack:'a'}
+  ]},
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{color:'#a1a1aa',font:{size:11}}}},
+    scales:{
+      x:{stacked:true,max:50,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#71717a',font:{size:11}}},
+      y:{stacked:true,grid:{display:false},ticks:{color:'#a1a1aa',font:{size:11}}}
+    }
+  }
+});
+
+// 4. 问题标签
+new Chart(document.getElementById('chart-tags'),{
+  type:'bar',
+  data:{
+    labels:['方案信息不完整','少查询','答非所问','方案错误','无法提供方案'],
+    datasets:[
+      {label:'文档转译skill',data:[26,9,0,0,0],backgroundColor:DOC,borderRadius:4},
+      {label:'流程转译skill版',data:[25,7,0,1,1],backgroundColor:FLOW,borderRadius:4},
+      {label:'线上对照版',data:[23,6,1,0,0],backgroundColor:CTRL,borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{color:'#a1a1aa',font:{size:11}}}},
+    scales:{
+      y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9ca3af',font:{size:11}}},
+      x:{grid:{display:false},ticks:{color:'#6b7280',font:{size:10}}}
+    }
+  }
+});
+
+// 5. 友好度——改为水平进度条，HTML直接渲染，不再用 Chart.js
+// (chart-friendly canvas 已移除，无需此处初始化)
+
+// 6. 效率——改为水平条，y轴从 88% 起步，放大微小差异
+new Chart(document.getElementById('chart-efficiency'),{
+  type:'bar',
+  data:{
+    labels,
+    datasets:[{
+      label:'对话效率',
+      data:[92,94,92],
+      backgroundColor:[DOC,FLOW,CTRL],
+      borderRadius:6,
+      barThickness:32
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>` ${ctx.raw}%`}},
+      datalabels: false
+    },
+    scales:{
+      x:{min:88,max:96,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',color:'#9ca3af',font:{size:11}}},
+      y:{grid:{display:false},ticks:{color:'#374151',font:{size:12,weight:'600'}}}
+    },
+    animation:{
+      onComplete: function(){
+        const chart=this, ctx=chart.ctx;
+        ctx.save();
+        ctx.font='bold 13px IBM Plex Sans,sans-serif';
+        ctx.fillStyle='#111827';
+        ctx.textAlign='left';
+        ctx.textBaseline='middle';
+        chart.data.datasets.forEach((ds,i)=>{
+          chart.getDatasetMeta(i).data.forEach((bar,idx)=>{
+            ctx.fillText(`${ds.data[idx]}%`, bar.x + 6, bar.y);
+          });
+        });
+        ctx.restore();
+      }
+    }
+  }
+});
+
+// 7. 风险
+new Chart(document.getElementById('chart-risk'),{
+  type:'bar',
+  data:{labels,datasets:[{label:'风险率',data:[8,10,0],backgroundColor:[WARN,BAD,GOOD],borderRadius:6}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}%`}}},
+    scales:{
+      y:{max:15,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',color:'#9ca3af',font:{size:11}}},
+      x:{grid:{display:false},ticks:{color:'#6b7280',font:{size:11}}}
+    }
+  }
+});
+
+// 8. 雷达
+new Chart(document.getElementById('chart-radar'),{
+  type:'radar',
+  data:{
+    labels:['识别准确率','完全解决率','交互友好率','对话效率','安全性(1-风险率)'],
+    datasets:[
+      {label:'文档转译skill',data:[86,48,94,92,92],borderColor:DOC,backgroundColor:'rgba(37,99,235,0.08)',pointBackgroundColor:DOC,borderWidth:2,pointRadius:3},
+      {label:'流程转译skill版',data:[80,46,86,94,90],borderColor:FLOW,backgroundColor:'rgba(124,58,237,0.08)',pointBackgroundColor:FLOW,borderWidth:2,pointRadius:3},
+      {label:'线上对照版',data:[62,52,82,92,100],borderColor:CTRL,backgroundColor:'rgba(107,114,128,0.08)',pointBackgroundColor:CTRL,borderWidth:2,pointRadius:3}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{color:'#a1a1aa',font:{size:11}}}},
+    scales:{r:{min:0,max:100,grid:{color:'rgba(0,0,0,0.08)'},angleLines:{color:'rgba(0,0,0,0.08)'},ticks:{stepSize:25,font:{size:9},backdropColor:'transparent',color:'#9ca3af'},pointLabels:{color:'#6b7280',font:{size:10}}}}
+  }
+});
+
+// Sidebar active link on scroll
+const sections = document.querySelectorAll('[id]');
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+  navItems.forEach(n => {
+    n.classList.remove('active');
+    if (n.getAttribute('href') === '#' + current) n.classList.add('active');
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
